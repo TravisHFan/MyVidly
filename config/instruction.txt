@@ -1,0 +1,68 @@
+Node.js 中常见的配置管理方式是使用 config 模块。
+它的特点是：
+    支持按环境区分配置文件（例如开发、生产）;
+    自动读取 config 目录下的配置文件;
+    使用 config.get('key') 来访问配置项;
+
+🌱 default.json 示例：
+
+{
+  "jwtPrivateKey": "mySecureKey",
+  "db": "mongodb://localhost/myapp"
+}
+
+config.get('jwtPrivateKey') 就会从这些文件中读取对应值。
+NODE_ENV 环境变量决定是使用 development.json、production.json 等配置文件。
+
+
+custom-environment-variables.json的内容是：
+
+{
+  "jwtPrivateKey": "vidly_jwtPrivateKey"
+}
+
+下面来详细解释它的作用和原理。
+
+✅ 文件名称含义：custom-environment-variables.json
+这是 config 模块提供的一个特殊机制，用于将配置项映射到操作系统的环境变量。
+这样做可以使敏感数据（比如密钥、密码）不直接写在代码仓库中的 default.json 或 production.json 里，增强安全性。
+
+当你调用：
+
+const config = require('config');
+const jwtKey = config.get('jwtPrivateKey');
+系统将不会从 default.json 或 production.json 中读取 jwtPrivateKey，而是会去读取环境变量：
+
+process.env.vidly_jwtPrivateKey
+如果该环境变量存在，其值就被用作 jwtPrivateKey 的值。
+
+✅ 使用场景举例
+你可以在 shell、服务器或容器中设置环境变量，比如：
+
+在本地终端（Linux/macOS）：
+export vidly_jwtPrivateKey=yourRealPrivateKey
+node index.js
+
+在 Windows CMD：
+set vidly_jwtPrivateKey=yourRealPrivateKey
+node index.js
+
+在部署服务器或 Docker 容器中：
+可通过 .env 文件或部署平台的环境变量设置界面配置此变量。
+
+✅ 整体工作流程图解：
+config.get('jwtPrivateKey')
+→ 查找 custom-environment-variables.json
+→ 找到映射名 "vidly_jwtPrivateKey"
+→ 读取环境变量 process.env.vidly_jwtPrivateKey
+→ 返回作为配置值
+
+✅ 小提示：
+如果你没有设置这个环境变量，调用 config.get('jwtPrivateKey') 会抛出异常。
+所以你的 startup/config.js 中才会有：
+
+if (!config.get('jwtPrivateKey')) {
+  throw new Error('FATAL ERROR: jwtPrivateKey is not defined.');
+}
+
+这是在防止开发者或运维忘记配置环境变量，导致程序运行在不安全的状态下。

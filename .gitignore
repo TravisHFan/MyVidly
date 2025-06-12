@@ -1,0 +1,49 @@
+# Node.js dependencies
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Test coverage reports
+coverage/
+
+# OS generated files
+.DS_Store
+
+# dotenv files (你未来可能添加)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Jest cache
+jest-cache/
+jest-config/
+jest-test-results.json
+
+# VSCode settings (可选)
+.vscode/
+
+# npm debug log
+npm-debug.log*
+
+# Optional IDE specific
+.idea/
+*.iml
+
+# MacOS system files
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# If mongodb-memory-server creates temp binaries (仅当有临时mongo binary目录时)
+mongodb-memory-server-*
+
+# Possible mongodb-memory-server tmp data
+tmp/
+
+# Git itself
+.git/
