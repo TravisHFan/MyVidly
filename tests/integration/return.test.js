@@ -55,4 +55,10 @@ describe("/api/return", () => {
     const res = await exec();
     expect(res.status).toBe(400);
   });
+
+  it("should return 404 if no rental found for the customer/movie", async () => {
+    await Rental.deleteMany(); // 清空所有租赁记录
+    const res = await exec();
+    expect(res.status).toBe(404);
+  });
 });
