@@ -1,6 +1,7 @@
 const request = require("supertest");
 const { Rental } = require("../../models/rental"); // Ensure the Rental model is loaded
 const mongoose = require("mongoose");
+const { User } = require("../../models/user"); // Ensure the User model is loaded
 const app = require("../../app");
 
 describe("/api/return", () => {
@@ -8,10 +9,19 @@ describe("/api/return", () => {
   let customerId;
   let movieId;
   let rental; //如果这里不声明，rental就会变成隐式的全局变量（因为 JS 会自动往 global 对象挂载）；
+  let token;
+
+  const exec = async () => {
+    return request(app)
+      .post("/api/returns")
+      .set("x-auth-token", token)
+      .send({ customerId, movieId });
+  };
 
   beforeEach(async () => {
     customerId = new mongoose.Types.ObjectId();
     movieId = new mongoose.Types.ObjectId();
+    token = new User().generateAuthToken();
 
     rental = new Rental({
       customer: {
@@ -29,9 +39,20 @@ describe("/api/return", () => {
   });
 
   it("should return 401 if client is not logged in", async () => {
-    const res = await request(app)
-      .post("/api/returns")
-      .send({ customerId, movieId });
+    token = "";
+    const res = await exec();
     expect(res.status).toBe(401);
+  });
+
+  it("should return 400 if customerId is not provided", async () => {
+    customerId = "";
+    const res = await exec();
+    expect(res.status).toBe(400);
+  });
+
+  it("should return 400 if movieId is not provided", async () => {
+    movieId = "";
+    const res = await exec();
+    expect(res.status).toBe(400);
   });
 });
