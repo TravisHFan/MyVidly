@@ -1,5 +1,7 @@
+const request = require("supertest");
 const { Rental } = require("../../models/rental"); // Ensure the Rental model is loaded
 const mongoose = require("mongoose");
+const app = require("../../app");
 
 describe("/api/return", () => {
   //务必在 describe() 作用域中用 let 提前声明所有共享变量。
@@ -26,8 +28,10 @@ describe("/api/return", () => {
     await rental.save();
   });
 
-  it("should work!", async () => {
-    const result = await Rental.findById(rental._id);
-    expect(result).not.toBeNull();
+  it("should return 401 if client is not logged in", async () => {
+    const res = await request(app)
+      .post("/api/returns")
+      .send({ customerId, movieId });
+    expect(res.status).toBe(401);
   });
 });
