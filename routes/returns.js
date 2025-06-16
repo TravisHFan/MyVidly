@@ -18,6 +18,11 @@ router.post("/", async (req, res) => {
       .status(404)
       .send("Not Found: Rental not found for the given customer and movie");
 
+  if (rental.dateReturned)
+    return res
+      .status(400)
+      .send("Bad Request: Rental has already been returned");
+
   res.status(401).send("Unauthorized: Client is not logged in");
 });
 
