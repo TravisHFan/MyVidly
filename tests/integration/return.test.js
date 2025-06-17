@@ -107,4 +107,18 @@ describe("/api/return", () => {
     const movieInDb = await Movie.findById(movieId);
     expect(movieInDb.numberInStock).toBe(movie.numberInStock + 1); // 7天 * 2元/天 = 14元
   });
+
+  it("should return the rental if input is valid", async () => {
+    const res = await exec();
+
+    expect(Object.keys(res.body)).toEqual(
+      expect.arrayContaining([
+        "dateOut",
+        "dateReturned",
+        "rentalFee",
+        "customer",
+        "movie",
+      ])
+    );
+  });
 });
