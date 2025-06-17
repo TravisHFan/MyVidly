@@ -1,6 +1,7 @@
 const moment = require("moment");
 const request = require("supertest");
 const { Rental } = require("../../models/rental"); // Ensure the Rental model is loaded
+const { Movie } = require("../../models/movie"); // Ensure the Rental model is loaded
 const mongoose = require("mongoose");
 const { User } = require("../../models/user"); // Ensure the User model is loaded
 const app = require("../../app");
@@ -11,6 +12,7 @@ describe("/api/return", () => {
   let movieId;
   let rental; //如果这里不声明，rental就会变成隐式的全局变量（因为 JS 会自动往 global 对象挂载）；
   let token;
+  let movie;
 
   const exec = async () => {
     return request(app)
@@ -23,6 +25,15 @@ describe("/api/return", () => {
     customerId = new mongoose.Types.ObjectId();
     movieId = new mongoose.Types.ObjectId();
     token = new User().generateAuthToken();
+
+    movie = new Movie({
+      _id: movieId,
+      title: "Inception",
+      dailyRentalRate: 2,
+      genre: { name: "Sci-Fi" },
+      numberInStock: 10,
+    });
+    await movie.save();
 
     rental = new Rental({
       customer: {
@@ -89,5 +100,11 @@ describe("/api/return", () => {
     const res = await exec();
     const rentalInDb = await Rental.findById(rental._id);
     expect(rentalInDb.rentalFee).toBe(14); // 7天 * 2元/天 = 14元
+  });
+
+  it("should increase the movie stock if input is valid", async () => {
+    const res = await exec();
+    const movieInDb = await Movie.findById(movieId);
+    expect(movieInDb.numberInStock).toBe(movie.numberInStock + 1); // 7天 * 2元/天 = 14元
   });
 });
