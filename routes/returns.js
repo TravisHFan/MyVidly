@@ -1,3 +1,4 @@
+const moment = require("moment");
 const { Rental } = require("../models/rental");
 const autho = require("../middleware/autho"); // Ensure auth middleware is loaded
 const express = require("express");
@@ -26,6 +27,8 @@ router.post("/", autho, async (req, res) => {
       .send("Bad Request: Rental has already been returned");
 
   rental.dateReturned = new Date();
+  const daysRented = moment().diff(rental.dateOut, "days");
+  rental.rentalFee = daysRented * rental.movie.dailyRentalRate;
   rental.save();
   return res.status(200).send();
 });
