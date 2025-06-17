@@ -25,6 +25,8 @@ router.post("/", autho, async (req, res) => {
       .status(400)
       .send("Bad Request: Rental has already been returned");
 
+  rental.dateReturned = new Date();
+  rental.save();
   return res.status(200).send();
 });
 
