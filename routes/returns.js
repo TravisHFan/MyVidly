@@ -1,16 +1,15 @@
+const Joi = require("joi");
 const moment = require("moment");
 const { Rental } = require("../models/rental");
 const { Movie } = require("../models/movie");
-const autho = require("../middleware/autho"); // Ensure auth middleware is loaded
+const autho = require("../middleware/authen"); // Ensure auth middleware is loaded
+const validate = require("../middleware/validate"); // Ensure validate middleware is loaded
 const express = require("express");
 const router = express.Router();
 
-router.post("/", autho, async (req, res) => {
-  if (!req.body.customerId)
-    return res.status(400).send("Bad Request: customerId is required");
-
-  if (!req.body.movieId)
-    return res.status(400).send("Bad Request: movieId is required");
+router.post("/", [autho, validate(validateReturn)], async (req, res) => {
+  const { error } = validateReturn(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
 
   const rental = await Rental.findOne({
     "customer._id": req.body.customerId,
@@ -41,5 +40,14 @@ router.post("/", autho, async (req, res) => {
 
   return res.status(200).send(rental);
 });
+
+function validateReturn(req) {
+  const schema = Joi.object({
+    customerId: Joi.objectId().required(),
+    movieId: Joi.objectId().required(),
+  });
+
+  return schema.validate(req); //新写法，和Mosh过时的不同
+}
 
 module.exports = router;

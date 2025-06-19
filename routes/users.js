@@ -1,4 +1,4 @@
-const autho = require("../middleware/autho");
+const autho = require("../middleware/authen");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const bcrypt = require("bcrypt");

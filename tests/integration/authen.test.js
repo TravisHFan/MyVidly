@@ -3,7 +3,7 @@ const app = require("../../app"); // Adjust the path as necessary
 const { User } = require("../../models/user"); // Ensure User model is loaded
 const { Genre } = require("../../models/genre"); // Ensure User model is loaded
 
-describe("auth middleware", () => {
+describe("authen middleware", () => {
   let token;
 
   const exec = () => {

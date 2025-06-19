@@ -1,10 +1,10 @@
 const { User } = require("../../../models/user"); // Ensure User model is loaded
-const autho = require("../../../middleware/autho"); // Adjust the path as necessary
+const authen = require("../../../middleware/authen"); // Adjust the path as necessary
 const mongoose = require("mongoose");
 
 //你造一个合法 token，塞进 mock request，调用 middleware，验证 middleware 是否把 token 正确 decode
 // 并写入 req.user。这就是标准的 Express middleware 单元测试模式。
-describe("autho middleware", () => {
+describe("authen middleware", () => {
   //创建一个测试套件，名字叫 autho middleware。
   it("should populate req.user with the payload of a valid JWT", async () => {
     const user = {
@@ -45,9 +45,9 @@ describe("autho middleware", () => {
     Express 中间件最后会调用 next()；
     你用 jest.fn() 伪造一个可观察的 next，但你这次测试里其实没用上 next 断言。 */
 
-    autho(req, res, next);
+    authen(req, res, next);
     /* 执行你要测试的中间件：
-    直接调用 autho()；
+    直接调用 authen()；
     传入你伪造好的 req、res、next；
     中间件逻辑会从 req.header() 取出 token，验证解码，设置 req.user。 */
 
