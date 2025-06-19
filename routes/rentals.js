@@ -1,13 +1,16 @@
 //fawn 已过时且长期未维护，不兼容现代 Mongoose（>v5）。更现代、推荐的做法是用 Mongoose 的原生事务 API（session）。
 // 将原来的 Fawn 事务逻辑替换为 Mongoose 事务
 
-const { Rental, validate } = require("../models/rental");
+const { Rental, validateRental } = require("../models/rental");
 const { Movie } = require("../models/movie");
 const { Customer } = require("../models/customer");
 const mongoose = require("mongoose");
 //const Fawn = require('fawn');
 const express = require("express");
 const router = express.Router();
+const mongooseValidateObjectId = require("../middleware/mongooseValidateObjId");
+const authen = require("../middleware/authen");
+const validate = require("../middleware/validate");
 
 //Fawn.init(mongoose);
 
@@ -16,10 +19,16 @@ router.get("/", async (req, res) => {
   res.send(rentals);
 });
 
-router.post("/", async (req, res) => {
-  const { error } = validate(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+router.get("/:id", mongooseValidateObjectId, async (req, res) => {
+  const rental = await Rental.findById(req.params.id);
 
+  if (!rental)
+    return res.status(404).send("The rental with the given ID was not found.");
+
+  res.send(rental);
+});
+
+router.post("/", [authen, validate(validateRental)], async (req, res) => {
   const customer = await Customer.findById(req.body.customerId);
   if (!customer) return res.status(400).send("Invalid customer.");
 
@@ -89,15 +98,6 @@ router.post("/", async (req, res) => {
     session.endSession();
     res.status(500).send("Something failed during transaction.");
   }
-});
-
-router.get("/:id", async (req, res) => {
-  const rental = await Rental.findById(req.params.id);
-
-  if (!rental)
-    return res.status(404).send("The rental with the given ID was not found.");
-
-  res.send(rental);
 });
 
 module.exports = router;
