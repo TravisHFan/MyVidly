@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const { User } = require("../../models/user"); // Ensure the User model is loaded
 const app = require("../../app");
 
-describe("/api/return", () => {
+describe("/api/returns", () => {
   //务必在 describe() 作用域中用 let 提前声明所有共享变量。
   let customerId;
   let movieId;
