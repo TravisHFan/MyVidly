@@ -8,7 +8,7 @@
   },
   "jest": {
     "setupFilesAfterEnv": [
-      "<rootDir>/tests/setup.js"
+      "<rootDir>/tests/setupStandard.js"
     ]
   },
   "keywords": [],
