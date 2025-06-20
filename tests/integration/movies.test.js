@@ -192,6 +192,18 @@ describe("/api/movies", () => {
       expect(res.status).toBe(400);
     });
 
+    it("should return 400 if genre is invalid", async () => {
+      newGenreId = new mongoose.Types.ObjectId(); // not existing genre
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 401 if user is not logged in", async () => {
+      token = "";
+      const res = await exec();
+      expect(res.status).toBe(401);
+    });
+
     it("should return 404 if id is invalid", async () => {
       id = "1";
       const res = await exec();
