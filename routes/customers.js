@@ -61,7 +61,7 @@ router.delete(
   "/:id",
   [authen, admin, mongooseValidateObjectId],
   async (req, res) => {
-    const customer = await Customer.findByIdAndRemove(req.params.id);
+    const customer = await Customer.findByIdAndDelete(req.params.id);
 
     if (!customer)
       return res

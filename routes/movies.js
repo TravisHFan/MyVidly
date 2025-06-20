@@ -13,6 +13,15 @@ router.get("/", async (req, res) => {
   res.send(movies);
 });
 
+router.get("/:id", mongooseValidateObjectId, async (req, res) => {
+  const movie = await Movie.findById(req.params.id);
+
+  if (!movie)
+    return res.status(404).send("The movie with the given ID was not found.");
+
+  res.send(movie);
+});
+
 router.post("/", [authen, validate(validateMovie)], async (req, res) => {
   const genre = await Genre.findById(req.body.genreId);
   if (!genre) return res.status(400).send("Invalid genre.");
@@ -63,7 +72,7 @@ router.delete(
   "/:id",
   [authen, admin, mongooseValidateObjectId],
   async (req, res) => {
-    const movie = await Movie.findByIdAndRemove(req.params.id);
+    const movie = await Movie.findByIdAndDelete(req.params.id);
 
     if (!movie)
       return res.status(404).send("The movie with the given ID was not found.");
@@ -71,14 +80,5 @@ router.delete(
     res.send(movie);
   }
 );
-
-router.get("/:id", mongooseValidateObjectId, async (req, res) => {
-  const movie = await Movie.findById(req.params.id);
-
-  if (!movie)
-    return res.status(404).send("The movie with the given ID was not found.");
-
-  res.send(movie);
-});
 
 module.exports = router;
