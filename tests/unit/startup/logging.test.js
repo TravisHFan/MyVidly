@@ -1,4 +1,5 @@
-const winston = require("winston");
+//const winston = require("winston");
+let winston;
 
 describe("startup/logging", () => {
   let capturedHandler;
@@ -6,12 +7,15 @@ describe("startup/logging", () => {
   let formatSpy;
 
   beforeEach(() => {
+    winston = require("winston");
+    //Reload Winston in each test to ensure spies apply after jest.resetModules
+
     // Intercept process.on to capture the unhandledRejection callback
     jest.spyOn(process, "on").mockImplementation((event, handler) => {
       if (event === "unhandledRejection") capturedHandler = handler;
     });
     /* capturedHandler 是整个测试里最关键的变量之一，它的作用是：
-    🔹捕获 process.on("unhandledRejection", handler) 中注册的 handler 函数，方便在测试中手动调用它。
+    捕获 process.on("unhandledRejection", handler) 中注册的 handler 函数，方便在测试中手动调用它。
 
     背景知识：process.on("unhandledRejection", handler)
     Node.js 中，当某个 Promise 被 reject 但没有 .catch() 捕获时，Node 会触发 unhandledRejection 事件。
@@ -33,16 +37,6 @@ describe("startup/logging", () => {
     jest.spyOn(winston.exceptions, "handle").mockImplementation(() => {}); // 用匿名函数替代原方法
     addSpy = jest.spyOn(winston, "add").mockImplementation(() => {});
     jest.spyOn(winston.transports, "File").mockImplementation(jest.fn()); // 用 jest.fn() 替代原方法
-    jest
-      .spyOn(winston.transports, "Console")
-      .mockImplementation(function (opts) {
-        this.format = opts.format;
-        return this;
-      });
-    formatSpy = jest
-      .spyOn(winston.format, "simple")
-      .mockReturnValue({ mocked: true });
-
     /* 虽然这两种写法在行为上基本等价，但使用方式略有不同，背后的目的也可能不同。
     jest.fn() 是一个可以追踪调用情况的 mock 函数。
     jest.fn() 返回一个 mock 函数对象，可以记录：
@@ -52,7 +46,17 @@ describe("startup/logging", () => {
     是否被调用过（.toHaveBeenCalled() 等断言）
 
     而() => {}仅用于避免真实执行、不关心调用细节
- */
+    */
+
+    jest
+      .spyOn(winston.transports, "Console")
+      .mockImplementation(function (opts) {
+        this.format = opts.format;
+        return this;
+      });
+    formatSpy = jest
+      .spyOn(winston.format, "simple")
+      .mockReturnValue({ mocked: true });
   });
 
   afterEach(() => {
