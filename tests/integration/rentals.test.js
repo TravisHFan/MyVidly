@@ -132,6 +132,11 @@ describe("/api/rentals", () => {
       movieId = movie._id;
     });
 
+    afterEach(() => {
+      // Ensure any spies are cleaned up after each test
+      jest.restoreAllMocks();
+    });
+
     const exec = async () => {
       return await request(app)
         .post("/api/rentals")
@@ -190,6 +195,36 @@ describe("/api/rentals", () => {
       await exec();
       const movieInDb = await Movie.findById(movieId);
       expect(movieInDb.numberInStock).toBe(movie.numberInStock - 1);
+    });
+
+    it("should return 500 if saving the rental fails", async () => {
+      jest.spyOn(Rental.prototype, "save").mockImplementationOnce(() => {
+        throw new Error("fail");
+      });
+      /* “监视 Rental.prototype.save” = 把所有实例的 save() 方法临时换成一个可控的假函数，
+      从而在测试里随心所欲地模拟 “保存成功 / 保存失败” 等不同情况。 
+      
+      Rental 是一个 Mongoose 模型（或类似 ORM 实体）
+      当你执行 const rental = new Rental({...}) 时，rental 实例会继承模型原型 (Rental.prototype) 
+      上定义的所有实例方法。
+      其中一个常用实例方法就是 save() —— 用来把当前文档写入数据库。
+
+      在 JavaScript 里，实例方法都挂在 ConstructorFunction.prototype 上
+
+      Rental.prototype.save   <-- 所有实例共享的 save 方法
+              ↑
+      rental.save()           <-- 调用时会顺着原型链找到上面这个方法
+      
+      
+      为什么要在 原型 上 spy？
+          测试时我们并不知道 exec() 里会 new 几个 Rental 实例。
+          只要把原型上的 save 换成 mock，所有新建出来的实例的 save() 都会变成我们定义的 fake 行为。
+          这样就能统一控制 “第一次调用 save() 抛错” 这样的场景，而不需要提前拿到那个实例。
+      */
+      const res = await exec();
+
+      expect(res.status).toBe(500);
+      expect(res.text).toMatch(/Something failed during transaction/);
     });
   });
 });

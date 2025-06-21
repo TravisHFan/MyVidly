@@ -69,7 +69,7 @@ describe("startup/logging", () => {
 
     expect(capturedHandler).toBeDefined(); //确保确实注册了 unhandledRejection 的处理器
     const error = new Error("test");
-    expect(() => capturedHandler(error)).toThrow(error); //模拟未处理的 promise 异常，并验证中间件是否 抛出错误（即行为为 throw ex）
+    expect(() => capturedHandler(error)).toThrow(error); //测试重点：验证 capturedHandler 会抛出这个异常
   });
 });
 
