@@ -226,5 +226,28 @@ describe("/api/rentals", () => {
       expect(res.status).toBe(500);
       expect(res.text).toMatch(/Something failed during transaction/);
     });
+
+    it("should abort transaction and end session if saving the rental fails", async () => {
+      const realStartSession = mongoose.startSession.bind(mongoose);
+      let abortSpy, endSpy;
+
+      jest
+        .spyOn(mongoose, "startSession")
+        .mockImplementation(async (...args) => {
+          const session = await realStartSession(...args);
+          abortSpy = jest.spyOn(session, "abortTransaction");
+          endSpy = jest.spyOn(session, "endSession");
+          return session;
+        });
+
+      jest.spyOn(Rental.prototype, "save").mockImplementationOnce(() => {
+        throw new Error("fail");
+      });
+
+      await exec();
+
+      expect(abortSpy).toHaveBeenCalled();
+      expect(endSpy).toHaveBeenCalled();
+    });
   });
 });
