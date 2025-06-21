@@ -83,7 +83,4 @@ winston.add(winston.transports.MongoDB, {
 
   存储在指定数据库的 log 集合中（默认集合名是 log，可以自定义）
 
-
-
-
 */

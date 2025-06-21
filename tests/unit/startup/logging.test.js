@@ -1,20 +1,9 @@
-/* Notes
-
-This unit test intercepts process.on to capture the unhandledRejection listener 
-and verifies that it rethrows received errors. This ensures the logic on line 11 
-of startup/logging.js is exercised in tests
-
-Summary
-Added a unit test logging.test.js verifying that the unhandledRejection handler 
-rethrows errors by capturing the listener via a mocked process.on and asserting 
-that it throws when invoked
-
- */
-
 const winston = require("winston");
 
 describe("startup/logging", () => {
   let capturedHandler;
+  let addSpy;
+  let formatSpy;
 
   beforeEach(() => {
     // Intercept process.on to capture the unhandledRejection callback
@@ -42,9 +31,17 @@ describe("startup/logging", () => {
 
     //mock 所有 winston 的方法，防止真的创建日志文件或向控制台输出。
     jest.spyOn(winston.exceptions, "handle").mockImplementation(() => {}); // 用匿名函数替代原方法
-    jest.spyOn(winston, "add").mockImplementation(() => {});
+    addSpy = jest.spyOn(winston, "add").mockImplementation(() => {});
     jest.spyOn(winston.transports, "File").mockImplementation(jest.fn()); // 用 jest.fn() 替代原方法
-    jest.spyOn(winston.transports, "Console").mockImplementation(jest.fn());
+    jest
+      .spyOn(winston.transports, "Console")
+      .mockImplementation(function (opts) {
+        this.format = opts.format;
+        return this;
+      });
+    formatSpy = jest
+      .spyOn(winston.format, "simple")
+      .mockReturnValue({ mocked: true });
 
     /* 虽然这两种写法在行为上基本等价，但使用方式略有不同，背后的目的也可能不同。
     jest.fn() 是一个可以追踪调用情况的 mock 函数。
@@ -61,6 +58,7 @@ describe("startup/logging", () => {
   afterEach(() => {
     jest.restoreAllMocks(); // 恢复原始行为
     jest.resetModules(); // 清除 require 缓存，确保下次 require 是干净的
+    process.env.NODE_ENV = "test";
   });
 
   it("should rethrow unhandled promise rejections", () => {
@@ -71,7 +69,24 @@ describe("startup/logging", () => {
     const error = new Error("test");
     expect(() => capturedHandler(error)).toThrow(error); //测试重点：验证 capturedHandler 会抛出这个异常
   });
-});
 
-/* 这个测试确保了你程序中所有未处理的 promise 错误都不会被静默忽略，而是通过抛出异常交由 
-winston.exceptions.handle() 处理，确保记录下来，符合健壮系统设计原则。 */
+  it("should add console transport when not in production", () => {
+    process.env.NODE_ENV = "development";
+    const loggingInit = require("../../../startup/logging");
+    loggingInit();
+
+    expect(addSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ format: { mocked: true } })
+    );
+  });
+
+  it("should not add console transport in production", () => {
+    process.env.NODE_ENV = "production";
+    const loggingInit = require("../../../startup/logging");
+    loggingInit();
+
+    expect(addSpy).not.toHaveBeenCalledWith(
+      expect.objectContaining({ format: { mocked: true } })
+    );
+  });
+});
