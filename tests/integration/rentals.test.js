@@ -199,7 +199,7 @@ describe("/api/rentals", () => {
 
     it("should return 500 if saving the rental fails", async () => {
       jest.spyOn(Rental.prototype, "save").mockImplementationOnce(() => {
-        throw new Error("fail");
+        throw new Error("Rental saving fail");
       });
       /* “监视 Rental.prototype.save” = 把所有实例的 save() 方法临时换成一个可控的假函数，
       从而在测试里随心所欲地模拟 “保存成功 / 保存失败” 等不同情况。 
@@ -227,13 +227,26 @@ describe("/api/rentals", () => {
       expect(res.text).toMatch(/Something failed during transaction/);
     });
 
+    it("should return 500 if saving the movie fails", async () => {
+      jest.spyOn(Movie.prototype, "save").mockImplementationOnce(() => {
+        throw new Error("Movie saving fail");
+      });
+
+      const res = await exec();
+
+      expect(res.status).toBe(500);
+      expect(res.text).toMatch(/Something failed during transaction/);
+    });
+
     it("should abort transaction and end session if saving the rental fails", async () => {
       const realStartSession = mongoose.startSession.bind(mongoose);
       let abortSpy, endSpy;
 
-      jest
-        .spyOn(mongoose, "startSession")
+      jest //mock 掉 mongoose.startSession 方法
+        .spyOn(mongoose, "startSession") //jest.spyOn(obj, methodName) 会监听（spy）对象上的某个方法，
+        // 记录它有没有被调用、调用了几次、传了什么参数，还可以模拟实现。
         .mockImplementation(async (...args) => {
+          //监视 startSession() 方法,每次调用它时，执行我们自己的实现逻辑（mockImplementation）；
           const session = await realStartSession(...args);
           abortSpy = jest.spyOn(session, "abortTransaction");
           endSpy = jest.spyOn(session, "endSession");
@@ -241,7 +254,7 @@ describe("/api/rentals", () => {
         });
 
       jest.spyOn(Rental.prototype, "save").mockImplementationOnce(() => {
-        throw new Error("fail");
+        throw new Error("Rental saving fail");
       });
 
       await exec();

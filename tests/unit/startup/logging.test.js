@@ -4,7 +4,6 @@ let winston;
 describe("startup/logging", () => {
   let capturedHandler;
   let addSpy;
-  let formatSpy;
 
   beforeEach(() => {
     winston = require("winston");
@@ -54,9 +53,7 @@ describe("startup/logging", () => {
         this.format = opts.format;
         return this;
       });
-    formatSpy = jest
-      .spyOn(winston.format, "simple")
-      .mockReturnValue({ mocked: true });
+    jest.spyOn(winston.format, "simple").mockReturnValue({ mocked: true });
   });
 
   afterEach(() => {
