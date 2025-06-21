@@ -4,10 +4,12 @@ require("express-async-errors");
 
 module.exports = function () {
   winston.exceptions.handle(
+    // 捕获未捕获的同步异常
     new winston.transports.File({ filename: "uncaughtExceptions.log" })
   );
 
   process.on("unhandledRejection", (ex) => {
+    // 捕获未处理的 promise 异常
     throw ex;
   });
 
