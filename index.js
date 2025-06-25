@@ -1,3 +1,4 @@
+require("./startup/logging")();
 const winston = require("winston"); //this default logger comes with one transport and that is for log in messages in the console
 const app = require("./app");
 

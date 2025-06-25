@@ -4,12 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --watchAll --verbose --coverage"
+    "test": "jest --watchAll --verbose --coverage",
+    "start": "node index.js"
   },
   "jest": {
     "setupFilesAfterEnv": [
       "<rootDir>/tests/setupStandard.js"
     ]
+  },
+  "engines": {
+    "node": "22.14.0"
   },
   "keywords": [],
   "author": "",
