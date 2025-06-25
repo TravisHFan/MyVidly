@@ -1,5 +1,4 @@
 const Joi = require("joi");
-const moment = require("moment");
 const { Rental } = require("../models/rental");
 const { Movie } = require("../models/movie");
 const authen = require("../middleware/authen"); // Ensure auth middleware is loaded
@@ -20,9 +19,7 @@ router.post("/", [authen, validate(validateReturn)], async (req, res) => {
       .status(400)
       .send("Bad Request: Rental has already been returned");
 
-  rental.dateReturned = new Date();
-  const daysRented = moment().diff(rental.dateOut, "days");
-  rental.rentalFee = daysRented * rental.movie.dailyRentalRate;
+  rental.return();
   await rental.save();
 
   await Movie.updateOne(
@@ -32,7 +29,8 @@ router.post("/", [authen, validate(validateReturn)], async (req, res) => {
     }
   );
 
-  return res.status(200).send(rental);
+  //return res.status(200).send(rental); // we don't explicitly want to send a 200 status code here, as the default for successful POST is 201
+  return res.send(rental);
 });
 
 function validateReturn(req) {
